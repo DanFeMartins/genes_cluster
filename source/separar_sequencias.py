@@ -1,12 +1,19 @@
 from Bio import SeqIO
 
-# Carregar o arquivo FASTA contendo as sequências alinhadas
-fasta_file = "aligned_sequences.fasta"  # Substitua pelo seu arquivo
+# Carregar a sequência FASTA
+input_file = "Mus_musculus.GRCm39.dna_sm.chromosome.19.fa"
+output_prefix = "mouse_chr22_part"
 
-# Ler as sequências alinhadas
-aligned_sequences = list(SeqIO.parse(fasta_file, "fasta"))
+# Definir o tamanho máximo por parte (e.g., 10 milhões de nucleotídeos)
+chunk_size = 10000000
 
-# Exibir as sequências carregadas
-for seq_record in aligned_sequences:
-    print(f"ID: {seq_record.id}")
-    print(f"Sequência: {seq_record.seq}\n")
+# Dividir a sequência
+with open(input_file) as fasta_file:
+    record = next(SeqIO.parse(fasta_file, "fasta"))
+    sequence = record.seq
+    for i in range(0, len(sequence), chunk_size):
+        chunk = sequence[i:i+chunk_size]
+        output_file = f"{output_prefix}_{i//chunk_size+1}.fa"
+        with open(output_file, "w") as out_file:
+            out_file.write(f">{record.id}_part{i//chunk_size+1}\n")
+            out_file.write(str(chunk) + "\n")
